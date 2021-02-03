@@ -1,43 +1,64 @@
-import cv2
+"""
+   *Face Tracking System Using Arduino - Python Code*
+    Close the Arduino IDE before running this code to avoid Serial conflicts.
+    Replace 'COM5' with the name of port where you arduino is connected.
+    To find the port check Arduino IDE >> Tools >> port.
+    Upload the Arduino code before executing this code.
+
+    # Code by Harsh Dethe, 09 Sep 2018 #
+"""
 import numpy as np
 import serial
+import time
+import sys
+import cv2
 
-port = serial.Serial('COM4',9600)
-face_cas = cv2.CascadeClassifier('C:/Users/PAVILION/AppData/Local/Programs/Python/Python36/attendance/haarcascade_frontalface_default.xml')
+arduino = serial.Serial('COM4', 9600)
+time.sleep(2)
+print("Connection to arduino...")
+
+
+face_cascade = cv2.CascadeClassifier('C:/Users/PAVILION/AppData/Local/Programs/Python/Python36/attendance/haarcascade_frontalface_default.xml')
+
 cap = cv2.VideoCapture(0)
-font = cv2.FONT_HERSHEY_SIMPLEX
-cap.set(3, 480)
-cap.set(4, 320)
-_, frame = cap.read()
-rows, cols, _ = frame.shape
-x_medium = int(cols / 2)
-center = int(cols / 2)
-position = 90 # degrees
-while True:
-    _, frame = cap.read()
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY);
-    faces = face_cas.detectMultiScale(gray, 1.3, 7);
-    for (x,y,w,h) in faces:
-        x_medium = int((x+x+w)/2)
-        
-        break
-    cv2.line(frame, (x_medium, 0), (x_medium, 480), (0, 255, 0), 2)
-    if x_medium < center -30:
-        position += 1
-        
-    elif x_medium > center +30:
-        position -= 1
-       
-        
-        cv2.line(frame, (x_medium, 0), (x_medium, 480), (0, 255, 0), 2)
-        #roi_gray = gray[y:y + h, x:x + w]
-        #cv2.rectangle(img, (x,y), (x+w, y+h), (255,0,0),10);
-        #cv2.putText(img,str('Welcome!!!'),(x,y-10),font,1,(120,255,120),1)
-    port.write(repr(position).encode('utf-8'))
-    cv2.imshow('Detect', frame)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
 
-# When everything done, release the capture
-cap.release()
-cv2.destroyAllWindows() 
+while 1:
+    ret, img = cap.read()
+    cv2.resizeWindow('img', 500,500)
+    cv2.line(img,(500,250),(0,250),(0,255,0),1)
+    cv2.line(img,(250,0),(250,500),(0,255,0),1)
+    cv2.circle(img, (250, 250), 5, (255, 255, 255), -1)
+    gray  = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray, 1.3)
+
+    for (x,y,w,h) in faces:
+        cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),5)
+        roi_gray  = gray[y:y+h, x:x+w]
+        roi_color = img[y:y+h, x:x+w]
+
+        arr = {y:y+h, x:x+w}
+        print (arr)
+        
+        print ('X :' +str(x))
+        print ('x+w :' +str(x+w))
+        print ('y+h :' +str(y+h))
+
+        xx = int(x+(x+h))/2
+        yy = int(y+(y+w))/2
+
+        print (xx)
+        print (yy)
+
+        center = (xx,yy)
+
+        print("Center of Rectangle is :", center)
+        data = "X{0:.0f}Y{1:.0f}Z".format(xx, yy)
+        print (data)
+        arduino.write(data.encode())
+    
+
+    cv2.imshow('img',img)
+   
+    k = cv2.waitKey(30) & 0xff
+    if k == 27:
+        break
