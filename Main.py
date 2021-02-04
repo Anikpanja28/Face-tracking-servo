@@ -1,12 +1,3 @@
-"""
-   *Face Tracking System Using Arduino - Python Code*
-    Close the Arduino IDE before running this code to avoid Serial conflicts.
-    Replace 'COM5' with the name of port where you arduino is connected.
-    To find the port check Arduino IDE >> Tools >> port.
-    Upload the Arduino code before executing this code.
-
-    # Code by Harsh Dethe, 09 Sep 2018 #
-"""
 import numpy as np
 import serial
 import time
